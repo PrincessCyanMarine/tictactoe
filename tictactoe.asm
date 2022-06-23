@@ -35,12 +35,13 @@ section .data
 
 
 section .bss
-    input: resb 64
+    input: resb 1
 
 section .text
     global _start
     _start:
-        ; mov r8w, 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
+        ; mov r8, 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
+        ; mov r9, 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
         mov r8,   0
         mov r9,   0
         main_loop:
@@ -57,7 +58,7 @@ _read_input:
     mov         rax, 0
     mov         rdi, 0
     lea         rsi, [input]
-    mov         rdx, 64
+    mov         rdx, 1
     syscall
     ret
 
@@ -110,7 +111,7 @@ _print_state:
                     jmp skip_1
             _print_x:
                 mov rsi, x_symbol
-                shr r12w, 1
+                shr r12w, 1  ; Shift r12 pra direita pra que no proximo looop ambos estejam na mesma posição do tabuleiro
                 jmp skip_1
             _print_o:
                 mov rsi, o_symbol
@@ -124,7 +125,6 @@ _print_state:
         call _print_symbol
         dec r15
         jnz outer_loop
-
     ret
 
     _print_symbol:
@@ -136,7 +136,6 @@ _print_state:
         ret
 
 _test_keys:
-    ; "0" to exit
     mov rsi, exit_string
     call _compare_string
     je exit
@@ -207,51 +206,51 @@ _clear_terminal:
 ; 8   16  32
 ; 64  128 256
 _test_win:
-    mov r11w, 1 + 16 + 256
+    mov r11w, 273 ; 1 + 16 + 256
     call _test_config
 
-    mov r11w, 64 + 16 + 4
+    mov r11w, 84  ; 64 + 16 + 4
     call _test_config
 
-    mov r11w, 1 + 2 + 4
+    mov r11w, 7   ; 1 + 2 + 4
     call _test_config
 
-    mov r11w, 8 + 16 + 32
+    mov r11w, 56  ; 8 + 16 + 32
     call _test_config
 
-    mov r11w, 64 + 128 + 256
+    mov r11w, 448 ; 64 + 128 + 256
     call _test_config
 
-    mov r11w, 1 + 8 + 64
+    mov r11w, 73  ; 1 + 8 + 64
     call _test_config
 
-    mov r11w, 2 + 16 + 128
+    mov r11w, 146 ; 2 + 16 + 128
     call _test_config
 
-    mov r11w, 4 + 32 + 256
+    mov r11w, 292 ; 4 + 32 + 256
     call _test_config
 
-    mov r11w, 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
+    mov r11w, 511 ; 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256
     mov r10w, r8w
     add r10w, r9w
-    call _test_body
-    je _draw
+    call _test_body ; Precisa do and r10w, r11w por causa do bit de jogador em r8
+    jz _draw
 
     ret
 
     _test_config:
         mov r10w, r8w
         call _test_body
-        je x_win
+        jz x_win
 
         mov r10w, r9w
         call _test_body
-        je o_win
+        jz o_win
 
         ret
 
         _test_body:
-            and r10w, r11w
+            and r10w, r11w  ; Zera os bits que não estão sendo testados
             cmp r10w, r11w
             ret
 
